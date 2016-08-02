@@ -29,7 +29,7 @@ $ source virenv/bin/activate
 $ pip install jinja2
 ```
 
-MySQL的Python驱动程序mysql-connector：
+安装MySQL驱动程序mysql-connector：
 
 ```
 $ pip install mysql-connector
