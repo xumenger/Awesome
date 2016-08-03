@@ -207,13 +207,13 @@ class _TransactionCtx(object):
     def commit(self):
         global _db_ctx
         logging.info('commit transaction...')
-            try:
-                _db_ctx.connection.commit()
-            except:
-                logging.warning('commit failed. try rollback...')
-                _db_ctx.connection.rollback()
-                logging.warning('rollback ok.')
-                raise
+        try:
+            _db_ctx.connection.commit()
+        except:
+            logging.warning('commit failed. try rollback...')
+            _db_ctx.connection.rollback()
+            logging.warning('rollback ok.')
+            raise
     def rollback(self):
         global _db_ctx
         logging.warning('rollback transaction...')
