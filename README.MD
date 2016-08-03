@@ -58,3 +58,12 @@ awesome-python-webapp/   <-- 根目录
 |
 +- README.MD
 ```
+
+##跟踪
+
+**2016-08-04**
+
+* Python装饰器
+* Python面向对象的基础语法
+* Python多线程
+* 调试现有代码
