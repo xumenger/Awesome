@@ -64,9 +64,6 @@ awesome-python-webapp/   <-- 根目录
 **day2: 2016-08-05**
 
 * [《Day 2 - 编写数据库模块》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/0013976160374750f95bd09087744569be5aae6160c8351000)
-* 相关链接
-  * [《Day 2 - 编写数据库模块》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/0013976160374750f95bd09087744569be5aae6160c8351000)
-  * [《Day 2　对应的代码》](https://github.com/michaelliao/awesome-python-webapp/blob/day-02/www/transwarp/db.py)
 * Python dict字典
   * [《python dict 两种遍历方式的比较》](http://www.cnblogs.com/waising/articles/2549116.html)
   * [《Python dict》](http://www.cnblogs.com/waising/articles/2298254.html)
@@ -105,7 +102,7 @@ awesome-python-webapp/   <-- 根目录
 
 **day4: 2016-08-13**
 
-* [《Day 4 - 编写Model](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001402307049906212b8a97f1df4587962539baa31d1fcd000)
+* [《Day 4 - 编写Model》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001402307049906212b8a97f1df4587962539baa31d1fcd000)
 * 如何发现错误以及报错排查策略
   * 编写好一个py之后，初步使用`import ...py`的方式，可发现一些语法错误
   * 假如执行`import ...py`报错
