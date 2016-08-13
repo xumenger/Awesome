@@ -94,9 +94,9 @@ awesome-python-webapp/   <-- 根目录
 
 * ! Python 关键符号：\* and \*\*
   * http://blog.csdn.net/delphiwcdj/article/details/5746560
-* ! Python dict tuple list set
+* ! Python 列表 元组 集合 字典
   * https://liuzhichao.com/p/1645.html
-  * 列表 [] 可以添加、删除元素 ['a', 'b', 'c']
-  * 元组 () 和列表类似，但元组是不可变的 (1, 'a', 'b')
-  * 集合 {} 无序不重复元素集，可新增、删除元素 {1, 2, 3, 4}
-  * 字典 {} 键值对 {'a':123, 'b':'something'}
+  * 列表list [] 可以添加、删除元素 ['a', 'b', 'c']
+  * 元组tuple () 和列表类似，但元组是不可变的 (1, 'a', 'b')
+  * 集合set {} 无序不重复元素集，可新增、删除元素 {1, 2, 3, 4}
+  * 字典dict {} 键值对 {'a':123, 'b':'something'}
