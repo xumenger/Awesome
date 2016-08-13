@@ -61,7 +61,7 @@ awesome-python-webapp/   <-- 根目录
 
 ##跟踪
 
-**2016-08-05**
+**day2: 2016-08-05**
 
 * 相关链接
   * http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/0013976160374750f95bd09087744569be5aae6160c8351000
@@ -90,13 +90,35 @@ awesome-python-webapp/   <-- 根目录
   * http://www.cnblogs.com/lijingchn/p/5299000.html
   * http://www.ietf.org/rfc/rfc4122.txt
 
-**2016-08-13**
+**day3: 2016-08-13**
 
 * ! Python 关键符号：\* and \*\*
   * http://blog.csdn.net/delphiwcdj/article/details/5746560
-* ! Python dict tuple list set
+* ! Python 列表 元组 集合 字典
   * https://liuzhichao.com/p/1645.html
-  * 列表 [] 可以添加、删除元素 ['a', 'b', 'c']
-  * 元组 () 和列表类似，但元组是不可变的 (1, 'a', 'b')
-  * 集合 {} 无序不重复元素集，可新增、删除元素 {1, 2, 3, 4}
-  * 字典 {} 键值对 {'a':123, 'b':'something'}
+  * 列表list [] 可以添加、删除元素 ['a', 'b', 'c']
+  * 元组tuple () 和列表类似，但元组是不可变的 (1, 'a', 'b')
+  * 集合set {} 无序不重复元素集，可新增、删除元素 {1, 2, 3, 4}
+  * 字典dict {} 键值对 {'a':123, 'b':'something'}
+
+**day4: 2016-08-13**
+
+* 如何发现错误以及报错排查策略
+  * 编写好一个py之后，初步使用`import ...py`的方式，可发现一些语法错误
+  * 假如执行`import ...py`报错
+  * 则可以根据输出的Traceback (most recent call last):信息分析函数调用过程
+  * 结合报错信息、代码上下文进行定位和排查错误
+* 针对今天的开发进行测试
+  * 到项目根目录执行`mysql -u root -p < schema.sql`，创建需要的数据库和表
+  * 到www目录执行`python`-->`import test`即可执行测试程序
+* 测试的预期的输出结果如下
+
+```
+>>> import test
+WARNING:root:NOTE: change primary key to non-updatable.
+WARNING:root:NOTE: change primary key to non-updatable.
+WARNING:root:NOTE: change primary key to non-updatable.
+new user id: 00147108558998799cd9922cc5e474fbb1077725e1ac554000
+find user's name: Test
+find user: None
+```
