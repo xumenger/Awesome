@@ -77,7 +77,7 @@ awesome-python-webapp/   <-- 根目录
 * Python threadlocal
   * threadlocal提供了一个比thread模块更高层的API来提供线程的并发性
   * 这些线程并发运行并共享内存
-  * [《python中threading模块详解（一）](http://blog.chinaunix.net/uid-27571599-id-3484048.html)
+  * [《python中threading模块详解（一）》](http://blog.chinaunix.net/uid-27571599-id-3484048.html)
   * [《ThreadLocal》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386832845200f6513494f0c64bd882f25818a0281e80000)
 * Python 装饰器
   * 装饰器可以对一个函数、方法或者类进行加工
@@ -85,7 +85,7 @@ awesome-python-webapp/   <-- 根目录
 * Python functools
   * [《 Python模块(functools) 》](http://blog.csdn.net/lwnylslwnyls/article/details/48007001)
 * Python time
-  * [《Python time time()方法》]http://www.runoob.com/python/att-time-time.html)
+  * [《Python time time()方法》](http://www.runoob.com/python/att-time-time.html)
 * Python uuid
   * [《Python_uuid 学习总结》](http://www.cnblogs.com/lijingchn/p/5299000.html)
   * [《A Universally Unique IDentifier (UUID) URN Namespace》](http://www.ietf.org/rfc/rfc4122.txt)
