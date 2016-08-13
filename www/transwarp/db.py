@@ -93,8 +93,8 @@ def create_engine(user, password, database, host='127.0.0.1', port=3306, **kw):
     global engine
     if engine is not None:
         raise DBError('Engine is already initialized.')
-    params = dict(user=user, password=passwrd, database=database, host=host, port=port)
-    defaults = dict(user_unicode=True, charset='utf-8', collation='utf8_general_ci', autocommit=False)
+    params = dict(user=user, password=password, database=database, host=host, port=port)
+    defaults = dict(use_unicode=True, charset='utf8', collation='utf8_general_ci', autocommit=False)
     for k, v in defaults.iteritems():
         params[k] = kw.pop(k, v)
     params.update(kw)
@@ -251,8 +251,8 @@ def _update(sql, *args):
             cursor.close()
 
 def insert(table, **kw):
-    cols, args = zip(**kw.iteritems())
-    sql = 'insert into `%s` (%s)' % (table, ','.join(['`%s`' % clo for col in clos]), ','.join(['?' for i in range(len(cols))]))
+    cols, args = zip(*kw.iteritems())
+    sql = 'insert into `%s` (%s) values (%s)' % (table, ','.join(['`%s`' % col for col in cols]), ','.join(['?' for i in range(len(cols))]))
     return _update(sql, *args)
 
 def update(sql, *args):
