@@ -61,7 +61,7 @@ class FloatField(Field):
 class BooleanField(Field):
     def __init__(self, **kw):
         if not 'default' in kw:
-            ke['default'] = False
+            kw['default'] = False
         if not 'ddl' in kw:
             kw['ddl'] = 'bool'
         super(BooleanField, self).__init__(**kw)

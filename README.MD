@@ -110,7 +110,7 @@ awesome-python-webapp/   <-- 根目录
   * 结合报错信息、代码上下文进行定位和排查错误
 * 针对今天的开发进行测试
   * 到项目根目录执行`mysql -u root -p < schema.sql`，创建需要的数据库和表
-  * 到www目录执行`python`-->`import test`即可执行测试程序
+  * 到www目录执行`python`-->`import test_db`即可执行测试程序
 * 测试的预期的输出结果如下
 
 ```
