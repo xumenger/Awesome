@@ -131,7 +131,21 @@ find user: None
   * [《Web开发》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386832648091917b035146084c43b05754ec9408dfaf000)
   * [《HTTP协议简介》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386832653051fd44e44e4f9e4ed08f3e5a5ab550358d000)
   * [《HTML简介》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386833123019425a41845ca540a19c9080e8f930d7e1000)
+  * HTML定义了页面的内容；CSS来控制页面元素的样式；JS负责页面的交互逻辑
   * [《WSGI接口》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386832689740b04430a98f614b6da89da2157ea3efe2000)
   * [《使用Web框架》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386832704232d6fb5df42dd34a7890fa6254351faac7000)
   * [《使用模板》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386832805619b3e68a9cf16c4d0398d8af8f6d50e740000)
-  * [《》]()
+* 一个Web应用的最简单、最常见的工作模式如下
+  * 浏览器发送一个HTTP请求
+  * 服务器收到请求，生成一个HTML文档
+  * 服务器把HTML文档作为HTTP响应的boby发送给浏览器
+  * 浏览器收到HTTP响应，从HTTP Body取出HTML文档并显示
+* 不懂前端的Python工程师不是好的产品经理
+  * Web App最复杂的部分就在HTML页面
+  * HTML不仅要正确，还要通过CSS美化
+  * 再加上复杂的JavaScript脚本来实现各种交互和动画效果
+* 模板技术的工作原理
+  * 预先准备一个HTML文档
+  * 这个HTML文档不是普通的HTML，而是嵌入了一些变量和指令
+  * 然后，根据我们传入的数据，替换后，得到最终的HTML
+* 通过`import web`发现和排查初步的语法错误
