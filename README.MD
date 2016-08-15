@@ -153,3 +153,10 @@ find user: None
 **day6: 2016-08-15**
 
 * [《Day 6 - 添加配置文件》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001402319155292f806e5a1ba5342d2a497c63314b1c77f000)
+
+**day7: 2016-08-15**
+
+* [《Day 7 - 编写MVC》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/0014023534049359c3ce60cb680419ba423b5b704baac0c000)
+* 编写一个最简单的MVC，把它们全部启动起来
+  * `python wsgiapp.py`报错：ImportError: No module named mysql.connector
+  * 解决方法是
