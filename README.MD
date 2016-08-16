@@ -157,6 +157,24 @@ find user: None
 **day7: 2016-08-15**
 
 * [《Day 7 - 编写MVC》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/0014023534049359c3ce60cb680419ba423b5b704baac0c000)
-* 编写一个最简单的MVC，把它们全部启动起来
-  * `python wsgiapp.py`报错：ImportError: No module named mysql.connector
-  * 解决方法是
+* 编写一个最简单的MVC，把它们全部启动起来,下面说明操作的顺序，以及可能遇到的问题报错
+* `python wsgiapp.py`
+  * 报错：ImportError: No module named mysql.connector
+  * 解决方法是`pip install mysql-connector-python`
+  * 执行上面的命令可能还有报错：
+```
+Collecting mysql-connector-python
+  Could not find a version that satisfies the requirement mysql-connector-python (from versions: )
+No matching distribution found for mysql-connector-python
+```
+  * 解决方法是，执行`pip search mysql-connector | grep --color mysql-connector-python`，输出信息是
+```
+-connector-python
+mysql-connector-python-rf (2.1.3)        - MySQL driver written in Python
+mysql-connector-python (2.0.4)           - MySQL driver written in Python
+```
+  * 可以执行`pip install mysql-connector-python-rf==2.1.3`成功安装
+* 在浏览器中访问 http://localhost:9000/
+* 如果数据库的users表什么内容也没有，你就无法在浏览器中看到循环输出的内容
+  * 可以自己在MySQL的命令行里给users表添加几条记录，然后再访问
+* 在上面的过程中会发现很多的代码语法错误……需要一点一点的排查
