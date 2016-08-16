@@ -193,6 +193,16 @@ class HttpError(Exception):
 
     __repr__ = __str__
 
+class RedirectError(HttpError):
+    def __init__(self, code, location):
+        super(RedirectError, self).__init__(code)
+        self.location = location
+
+    def __str__(self):
+        return '%s, %s' % (self.status, self.location)
+
+    __repr__ = __str__
+
 def badrequest():
     return HttpError(400)
 
@@ -710,10 +720,10 @@ class WSGIApplication(object):
         logging.info('Add interceptor: %s' % str(func))
 
     def run(self, port=9000, host='127.0.0.1'):
-        from wsgiref.simple.server import make_server
+        from wsgiref.simple_server import make_server
         logging.info('application (%s) will start at %s:%s...' % (self._document_root, host, port))
         server = make_server(host, port, self.get_wsgi_application(debug=True))
-        serverl.server_forever()
+        server.serve_forever()
 
     def get_wsgi_application(self, debug=False):
         self._check_not_running()
@@ -724,7 +734,7 @@ class WSGIApplication(object):
         _application =Dict(document_root=self._document_root)
 
         def fn_route():
-            request_method = ctx.request_method
+            request_method = ctx.request.request_method
             path_info = ctx.request.path_info
             if request_method == 'GET':
                 fn = self._get_static.get(path_info, None)
