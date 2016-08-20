@@ -177,4 +177,4 @@ mysql-connector-python (2.0.4)           - MySQL driver written in Python
 * 在浏览器中访问 http://localhost:9000/
 * 如果数据库的users表什么内容也没有，你就无法在浏览器中看到循环输出的内容
   * 可以自己在MySQL的命令行里给users表添加几条记录，然后再访问
-* 在上面的过程中会发现很多的代码语法错误……需要一点一点的排查
+* 在上面的过程中会发现很多的代码语法错误……需要一点一点排查
