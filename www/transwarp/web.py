@@ -474,7 +474,7 @@ class Response(object):
     def headers(self):
         L = [(_RESPONSE_HEADER_DICT.get(k, k), v) for k, v in self._headers.iteritems()]
         if hasattr(self, '_cookies'):
-            for v in self._cookies.iteritems():
+            for v in self._cookies.itervalues():
                 L.append(('Set-Cookie', v))
             L.append(_HEADER_X_POWERED_BY)
             return L
@@ -558,7 +558,7 @@ class Response(object):
     def status(self, value):
         if isinstance(value, (int, long)):
             if value>=100 and value<=999:
-                st = _RESPONSE_HEADERS.get(value, '')
+                st = _RESPONSE_STATUSES.get(value, '')
                 if st:
                     self._status = '%d %s' % (value, st)
                 else:
@@ -696,7 +696,7 @@ class WSGIApplication(object):
         logging.info('Add module: %s' % m.__name__)
         for name in dir(m):
             fn = getattr(m, name)
-            if callable(fn) and hasattr(fn, '__web_route__') and hasattr(fn, '_web_method__'):
+            if callable(fn) and hasattr(fn, '__web_route__') and hasattr(fn, '__web_method__'):
                 self.add_url(fn)
 
     def add_url(self, func):
@@ -710,7 +710,7 @@ class WSGIApplication(object):
         else:
             if route.method == 'GET':
                 self._get_dynamic.append(route)
-            if route.Method == 'POST':
+            if route.method == 'POST':
                 self._post_dynamic.append(route)
         logging.info('Add route: %s' % str(route))
 
@@ -776,7 +776,7 @@ class WSGIApplication(object):
                 return []
             except HttpError, e:
                 start_response(e.status, response.headers)
-                return ['<html<body><h1>', e.Status, '</h1></body></html>']
+                return ['<html<body><h1>', e.status, '</h1></body></html>']
             except Exception, e:
                 logging.exception(e)
                 if not debug:

@@ -178,3 +178,35 @@ mysql-connector-python (2.0.4)           - MySQL driver written in Python
 * 如果数据库的users表什么内容也没有，你就无法在浏览器中看到循环输出的内容
   * 可以自己在MySQL的命令行里给users表添加几条记录，然后再访问
 * 在上面的过程中会发现很多的代码语法错误……需要一点一点排查
+
+**2016-08-22**
+
+* 因为对本地的git仓库重新命名导致各种报错，所以重新将github上的仓库clone到本地，并且执行以下命令创建虚拟环境、安装必要模块
+
+```
+$ virtualenv virenv
+$ source virenv/bin/activate
+$ pip install jinja2
+$ pip install mysql-connector-python-rf==2.1.3
+```
+* 然后执行`python wsgiapp.py`启动服务器，继续开发
+* 所以通过这次了解擅自修改本地的目录名，会导致目录中的虚拟环境出现问题，需要重新搭建虚拟环境、重新安装模块
+* 简单了解了重新搭建环境的简单步骤
+
+**2016-08-22**
+
+* 浏览器中输入：http://localhost:9000/，无法正确显示
+* 查看命令行中，出现报错信息
+```
+Traceback (most recent call last):
+  File "/usr/lib/python2.7/wsgiref/handlers.py", line 85, in run
+    self.result = application(self.environ, self.start_response)
+  File "/home/perfect/Desktop/MyWork/github/annotation.awesome.webapp/www/transwarp/web.py", line 778, in wsgi
+    start_response(e.status, response.headers)
+  File "/usr/lib/python2.7/wsgiref/handlers.py", line 178, in start_response
+    for name,val in headers:
+TypeError: 'NoneType' object is not iterable
+```
+* 二话不说，使用Pdb下断点，跟踪为什么会出现None类型！详细参见我整理的关于Pdb调试Python程序的文章
+* 因为在动手开发的过程中会遇到各种问题，通过分析和排查各种问题可以帮助自己很好的理解知识，这就是为什么看书再多不如实际上手写写代码
+* 今天并没有查出来任何原因，明天继续吧，可能需要将 wsgiref 的运行原理先去研究一下，清楚这个服务器到底是如何运行的才能有思路解决
