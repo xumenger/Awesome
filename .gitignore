@@ -66,3 +66,6 @@ Icon?
 ehthumbs.db
 Thumbs.db
 MANIFEST
+
+#virtualenv
+venv/
