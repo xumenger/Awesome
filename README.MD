@@ -80,3 +80,38 @@ perfect@perfect:~$ python db.py
 关于数据库模块的更详细的介绍，参见[《Day 2 - 编写数据库模块》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/0013976160374750f95bd09087744569be5aae6160c8351000)
 
 另外关于Python装饰器、functools，继续学习[《装饰器》](http://www.liaoxuefeng.com/wiki/001374738125095c955c1e6d8bb493182103fac9270762a000/001386819879946007bbf6ad052463ab18034f0254bf355000)
+
+##day3-编写ORM
+
+有了db模块，操作数据库直接写SQL就很方便了。但是，我们还缺少ORM，有了ORM，就可以用类似这样的语句获取User对象
+
+```
+user = User.get('123')
+```
+
+而不是写SQL然后再转换成User对象
+
+```
+u = db.select_one('select * from users where if = ?', '123')
+user = User(**u)
+```
+
+和设计db模块类似，设计ORM也是从上层调用者角度来设计，我们先考虑如何定义一个User对象，然后把数据库表users和它关联起来
+
+```
+from transwarp.orm import Model, StringField, IntegerField
+
+class User(Model):
+    __table__ = 'users'
+    id = IntegerField(primary_key=True)
+    name = StringField()
+```
+
+注意到定义在User类中的__table__、id和name是类的属性，不是实例的属性。所以，在类级别上定义的属性用来描述User对象和表的映射关系，而实例属性必须通过__init__()方法去初始化，所以两者互不干扰：
+
+```
+#创建实例
+user = User(id=123, name='xumenger')
+#存入数据库
+user.insert()
+```
