@@ -115,3 +115,8 @@ user = User(id=123, name='xumenger')
 #存入数据库
 user.insert()
 ```
+
+##需要补习的知识点
+
+* day2练习中对应的Python的装饰器的知识
+* day3练习中对应的Python的元类的知识
