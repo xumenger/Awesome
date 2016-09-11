@@ -138,7 +138,19 @@ find user's name:  Test
 find user:  None
 ```
 
+##day5-编写Web框架
+
+在开始正式Web 开发之前，我们需要编写一个Web 框架。为什么不选择一个现成的Web 框架而是自己从头开始呢？我们来考察一下现有的流行的Web 框架：
+
+* Django：一站式开发框架，但不利于定制化
+* web.py：使用类而不是最简单的函数来处理URL，并且URL 映射是单独配置的
+* Flask：使用@decorator 的URL 路由不错，但是框架对应用程序的代码入侵太强
+* bottle：缺少根据URL 模式进行拦截的功能，不利于权限检查
+
+
+
 ##需要补习的知识点
 
-* day2练习中对应的Python的装饰器的知识
-* day3练习中对应的Python的元类的知识
+* day2练习中对应的Python 的装饰器的知识
+* day3练习中对应的Python 的元类的知识
+* day5练习中对应的Python WSGI 的知识
