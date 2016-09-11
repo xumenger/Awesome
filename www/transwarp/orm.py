@@ -147,11 +147,11 @@ class ModelMetaclass(type):
                     if v.updatable:
                         logging.warning('NOTE: change primary key to non-updatable.')
                         v.updatable = False
-                    if nullable:
+                    if v.nullable:
                         logging.warning('NOTE: change primary key to non-nullable.')
                         v.nullable = False
                     primary_key = v
-                mappings[k] = k
+                mappings[k] = v
         #check exists of primary key
         if not primary_key:
             raise TypeError('primary key not define in class: %s' % name)
