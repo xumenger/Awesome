@@ -276,11 +276,11 @@ def _select(sql, first, *args):
             cursor.close()
 
 @with_connection
-def _select_one(sql, *args):
+def select_one(sql, *args):
     return _select(sql, True, *args)
 
 @with_connection
-def _select_int(sql, *args):
+def select_int(sql, *args):
     d = _select(sql, True, *args)
     if len(d) != 1:
         raise MultiColumnsError('Except only on column.')
@@ -313,8 +313,8 @@ def _update(sql, *args):
             cursor.close()
 
 def insert(table, **kw):
-    clos, args= zip(*kw.iteritems())
-    sql = 'insert into `%s` values (%s)' % (table, ','.join(['`%s`' % col for col in cols]), ','.join(['?' for i in range(len(cols))]))
+    cols, args= zip(*kw.iteritems())
+    sql = 'insert into `%s` (%s) values (%s)' % (table, ','.join(['`%s`' % col for col in cols]), ','.join(['?' for i in range(len(cols))]))
     return _update(sql, *args)
 
 def update(sql, *args):
