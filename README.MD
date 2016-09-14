@@ -147,10 +147,16 @@ find user:  None
 * Flask：使用@decorator 的URL 路由不错，但是框架对应用程序的代码入侵太强
 * bottle：缺少根据URL 模式进行拦截的功能，不利于权限检查
 
+因为HTTP是典型的请求--响应模式的网络协议，所以对应要实现Request和Response类，简单说来，HTTP服务器很简单：
 
+* 收到客户端的HTTP请求
+* 解析请求报文
+* 按照请求生成对应的响应信息
+* 按照HTTP协议的规范对响应信息进行打包
+* 将HTTP响应发回给服务器
 
 ##需要补习的知识点
 
-* day2练习中对应的Python 的装饰器的知识
+* day2练习中对应的Python 的装饰器、functools的知识
 * day3练习中对应的Python 的元类的知识
 * day5练习中对应的Python WSGI 的知识
