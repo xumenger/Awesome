@@ -153,10 +153,10 @@ find user:  None
 * 解析请求报文
 * 按照请求生成对应的响应信息
 * 按照HTTP协议的规范对响应信息进行打包
-* 将HTTP响应发回给服务器
+* 将HTTP响应报文发回给客户端
 
 ##需要补习的知识点
 
 * day2练习中对应的Python 的装饰器、functools的知识
 * day3练习中对应的Python 的元类的知识
-* day5练习中对应的Python WSGI 的知识
+* day5练习中对应的Python WSGI、正则表达式、Jinja2模板的使用的知识
