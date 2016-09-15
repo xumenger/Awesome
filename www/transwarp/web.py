@@ -17,6 +17,16 @@ except ImportError:
 #thread local object for storing request and response
 #保证其在多线程环境下是线程安全的
 ctx = threading.local()
+#如果需要从form表单或者URL的querying获取用户输入的数据，就需要访问Request对象
+#如果需要设置特定的Content-Type、设置Cookie等，就需要访问response对象
+#request和response对象应从唯一的ThreadLocal中获取
+#@get('/test')
+#def test():
+#   input_data = ctx.request.input()
+#   ctx.response.content_type = 'text/plain'
+#   ctx.response.set_cookie('name', 'value', expires=3600)
+#   return 'result'
+
 
 #封装dict，提供更人性化的功能
 class Dict(dict):
@@ -41,6 +51,29 @@ _TIMEDELTA_ZERO = datetime.timedelta(0)
 _RE_TZ = re.compile('^([\+\-])([0-9]{1,2})\:([0-9]{1,2})$')
 
 class UTC(datetime.tzinfo):
+    '''
+    A UTC tzinfo object
+
+    >>> tz0 = UTC('+00:00')
+    >>> tz0.tzname(None)
+    'UTC+00:00'
+    >>> tz8 = UTC('+8:00')
+    >>> tz8.tzname(None)
+    'UTC+8:00'
+    >>> tz5 = UTC('-5:30')
+    >>> tz5.tzname(None)
+    'UTC-05:30'
+    >>> from datetime import datetime
+    >>> u = datetime.utcnow().replace(tzinfo=tz0)
+    >>> l1 = u.astimezone(tz8)
+    >>> l2 = u.replace(tzinfo=tz8)
+    >>> d1 = u - l1
+    >>> d2 = u - l2
+    >>> d1.seconds
+    0
+    >>> d2.seconds
+    28800
+    '''
     def __init__(self, utc):
         utc = str(utc.strip().upper())
         mt = _RE_TZ.match(utc)
@@ -67,7 +100,6 @@ class UTC(datetime.tzinfo):
     __repr__ = __str__
 
 # all known response status
-
 _RESPONSE_STATUSES = {
     # Informational
     100: 'Continue',
@@ -181,6 +213,10 @@ _HEADER_X_POWERED_BY = ('X-Powered-By', 'transwarp/1.0')
 class HttpError(Exception):
     '''
     HttpError that defines http error code
+
+    >>> e = HttpError(404)
+    >>> e.status
+    '404 Not Found'
     '''
     def __init__(self, code):
         super(HttpError, self).__init__()
@@ -206,6 +242,12 @@ class HttpError(Exception):
 class RedirectError(HttpError):
     '''
     RedirectError that defines http redirect code
+
+    >>> e = RedirectError(302, 'http://www.apple.com/')
+    >>> e.status
+    '302 Found'
+    >>> e.location
+    'http://www.apple.com/'
     '''
     def __init__(self, code, location):
         super(RedirectError, self).__init__(code)
@@ -219,6 +261,11 @@ class RedirectError(HttpError):
 def badrequest():
     '''
     Send a bad request response
+
+    >>> raise badrequest()
+    Traceback (most recent call last):
+        ...
+    HttpError: 400 Bad Request
     '''
     return HttpError(400)
 
@@ -247,6 +294,16 @@ def seeother(location):
     return RedirectError(303, location)
 
 def _to_str(s):
+    '''
+    Convert to str
+    
+    >>> _to_str('s123') == 's123'
+    True
+    >>> _to_str(u'\u4e2d\u6587') == '\xe4\xb8\xad\xe6\x96\x87'
+    True
+    >>> _to_str(-123) == '-123'
+    True
+    '''
     if isinstance(s, str):
         return s
     if isinstance(s, unicode):
@@ -254,20 +311,45 @@ def _to_str(s):
     return str(s)
 
 def _to_unicode(s, encoding='utf-8'):
+    '''
+    Convert to unicode
+
+    >>> _to_unicode('\xe4\xb8\xad\xe6\x96\x87') == u'\u4e2d\u6587'
+    True
+    '''
     return s.decode('utf-8')
 
 def _quote(s, encoding='utf-8'):
+    '''
+    Utl quote as str
+
+    >>> _quote('http://example/test?a=1+')
+    'http%3A//example/test%3Fa%3D1%2B'
+    >>> _quote(u'hello world!')
+    'hello%20world%21'
+    '''
     if isinstance(s, unicode):
         s = s.encode(encoding)
     return urllib.quote(s)
 
 def _unquote(s, encoding='utf-8'):
+    '''
+    Url unquote as unicode
+
+    >>> _unquote('http%3A//example/test%3Fa%3D1+')
+    u'http://example/test?a=1+'
+    '''
     return urllib.unquote(s).decode(encoding)
 
 #定义URL 路由
 #@get('/:id')
 #def index(id):
-#   pass
+#   return '<h1>Index page</h1>'
+#或者
+#@get('/user/:id')
+#def show_user(id):
+#   user = User.get(id)
+#   return 'hello, %s' % user.name
 def get(path):
     def _decorator(func):
         func.__web_route__ = path
@@ -288,6 +370,16 @@ def post(path):
 _re_route = re.compile(r'(\:[a-zA-Z_]\w*)')
 
 def _build_regex(path):
+    r'''
+    Convert route path to regex.
+
+    >>> _build_regex('/path/to/:file')
+    '^\\/path\\/to\\/(?P<file>[^\\/]+)$'
+    >>> _build_regex('/:user/:comments/list')
+    '^\\/(?P<user>[^\\/]+)\\/(?P<comments>[^\\/]+)\\/list$'
+    >>> _build_regex(':id-:pid/:w')
+    '^(?P<id>[^\\/]+)\\/(?P<pid>[^\\/]+)\\/(?P<w>[^\\/]+)$'
+    '''
     re_list = ['^']
     var_list = []
     is_var = False
@@ -325,7 +417,7 @@ class Route(object):
         self.func = func
 
     def match(self, url):
-        m = slef.route.match(url)
+        m = self.route.match(url)
         if m:
             return m.groups()
         return None
@@ -373,12 +465,16 @@ def favicon_handler():
 class MultipartFile(object):
     '''
     Multipart file storage get from request input
+
+    c = ctx.request['file']
+    f.filename # 'test.png'
+    f.file # file-like object
     '''
     def __init__(self, storage):
         self.filename = _to_unicode(storage.filename)
         self.file = storage.file
 
-#HTTP请求
+#HTTP请求类
 class Request(object):
     '''
     Request object for obtaining all http request information
@@ -405,24 +501,86 @@ class Request(object):
         return self._raw_input
 
     def __getitem__(self, key):
+        '''
+        Get input paramter value.
+        If the specified key has multiple value, the first one is returned
+        If the specified key is not exist, the raise KeyError.
+
+        >>> from StringIO import StringIO
+        >>> r = Request({'REQUEST_METHOD':'POST', 'wsgi.input':StringIO('a=1&b=M%20M&c=ABC&c=XYZ&e=')})
+        >>> r['a']
+        u'1'
+        >>> r['c']
+        u'ABC'
+        >>> r['empty']
+        Trace (most recent call last):
+            ...
+        KeyError: 'empty'
+        '''
         r = self._get_raw_input()[key]
         if isinstance(r, list):
             return r[0]
         return r
 
     def get(self, key, default=None):
+        '''
+        The same as request[key], but return default value if key is not found.
+
+        >>> from StringIO import StringIO
+        >>> r = Request({'REQUEST_METHOD':'POST', 'wsgi.input':StringIO('a=1&b=M%20M&c=ABC&c=XYZ&e=')})
+        >>> r.get('a')
+        u'1'
+        >>> r.get('empty')
+        >>> r.get('empty', 'DEFAULT')
+        'DEFAULT'
+        '''
         r = self._get_raw_input().get(key, default)
         if isinstance(r, list):
             return r[0]
         return r
 
     def gets(self, key):
+	'''
+        Get multiple values for specified key.
+
+        >>> from StringIO import StringIO
+        >>> r = Request({'REQUEST_METHOD':'POST', 'wsgi.input':StringIO('a=1&b=M%20M&c=ABC&c=XYZ&e=')})
+        >>> r.gets('a')
+        [u'1']
+        >>> r.gets('c')
+        [u'ABC', u'XYZ']
+        >>> r.gets('empty')
+        Traceback (most recent call last):
+            ...
+        KeyError: 'empty'
+        '''
         r = self._get_raw_input()[key]
         if isinstance(r, list):
             return r[:]
         return [r]
 
     def input(self, **kw):
+        '''
+        Get input as dict from request, fill dict using provided default value if key not exist.
+
+        i = ctx.request.input(role='guest')
+        i.role ==> 'guest'
+        >>> from StringIO import StringIO
+        >>> r = Request({'REQUEST_METHOD':'POST', 'wsgi.input':StringIO('a=1&b=M%20M&c=ABC&c=XYZ&e=')})
+        >>> i = r.input(x=2008)
+        >>> i.a
+        u'1'
+        >>> i.b
+        u'M M'
+        >>> i.c
+        u'ABC'
+        >>> i.x
+        2008
+        >>> i.get('d', u'100')
+        u'100'
+        >>> i.x
+        2008
+        '''
         copy = Dict(**kw)
         raw = self._get_raw_input()
         for k, v in raw.iteritems():
@@ -430,35 +588,104 @@ class Request(object):
         return copy
 
     def get_body(self):
+        '''
+        Get raw data from HTTP POST and return as str.
+
+        >>> from StringIO import StringIO
+        >>> r = Request({'REQUEST_METHOD':'POST', 'wsgi.input':StringIO('<xml><raw/>')})
+        >>> r.get_body()
+        '<xml><raw/>'
+        '''
         fp = self._environ['wsgi.input']
         return fp.read()
 
     @property
     def remote_addr(self):
+        '''
+        Get remote addr. Return '0.0.0.0' if cannot get remote_addr.
+
+        >>> r = Request({'REMOTE_ADDR': '192.168.0.100'})
+        >>> r.remote_addr
+        '192.168.0.100'
+        '''
         return self._environ.get('REMOTE_ADDR', '0.0.0.0')
 
     @property
     def document_root(self):
+        '''
+        Get raw document_root as str. Return '' if no document_root.
+
+        >>> r = Request({'DOCUMENT_ROOT': '/srv/path/to/doc'})
+        >>> r.document_root
+        '/srv/path/to/doc'
+        '''
         return self._environ.get('DOCUMENT_ROOT', '')
 
     @property
     def query_string(self):
+        '''
+        Get raw query string as str. Return '' if no query string.
+
+        >>> r = Request({'QUERY_STRING': 'a=1&c=2'})
+        >>> r.query_string
+        'a=1&c=2'
+        >>> r = Request({})
+        >>> r.query_string
+        ''
+        '''
         return self._environ.get('QUERY_STRING', '')
 
     @property
     def environ(self):
+        '''
+        Get raw environ as dict, both key, value are str.
+
+        >>> r = Request({'REQUEST_METHOD': 'GET', 'wsgi.url_scheme':'http'})
+        >>> r.environ.get('REQUEST_METHOD')
+        'GET'
+        >>> r.environ.get('wsgi.url_scheme')
+        'http'
+        >>> r.environ.get('SERVER_NAME')
+        >>> r.environ.get('SERVER_NAME', 'unamed')
+        'unamed'
+        '''
         return self._environ
 
     @property
     def request_method(self):
+        '''
+        Get request method. The valid returned values are 'GET', 'POST', 'HEAD'.
+
+        >>> r = Request({'REQUEST_METHOD': 'GET'})
+        >>> r.request_method
+        'GET'
+        >>> r = Request({'REQUEST_METHOD': 'POST'})
+        >>> r.request_method
+        'POST'
+        '''
         return self._environ['REQUEST_METHOD']
 
+    #返回URL的path
     @property
     def path_info(self):
+        '''
+        Get request path as str.
+
+        >>> r = Request({'PATH_INFO': '/test/a%20b.html'})
+        >>> r.path_info
+        '/test/a b.html'
+        '''
         return urllib.unquote(self._environ.get('PATH_INFO', ''))
 
     @property
     def host(self):
+        '''
+        Get request host as str. Default to '' if cannot get host..
+
+        >>> r = Request({'HTTP_HOST': 'localhost:8080'})
+        >>> r.host
+        'localhost:8080'
+        '''
         return self._environ.get('HTTP_HOST', '')
 
     def _get_headers(self):
@@ -471,13 +698,42 @@ class Request(object):
             self._headers = hdrs
         return self._headers
 
-    #获取HTTP请求头的各个元素，以字典的形式返回
+    #返回HTTP Headers
     @property
     def headers(self):
+        '''
+        Get all HTTP headers with key as str and value as unicode. The header names are 'XXX-XXX' uppercase.
+
+        >>> r = Request({'HTTP_USER_AGENT': 'Mozilla/5.0', 'HTTP_ACCEPT': 'text/html'})
+        >>> H = r.headers
+        >>> H['ACCEPT']
+        u'text/html'
+        >>> H['USER-AGENT']
+        u'Mozilla/5.0'
+        >>> L = H.items()
+        >>> L.sort()
+        >>> L
+        [('ACCEPT', u'text/html'), ('USER-AGENT', u'Mozilla/5.0')]
+        '''
         return dict(**self._get_headers())
 
     #获取HTTP请求头中的某个指定元素
     def header(self, header, default=None):
+        '''
+        Get header from request as unicode, return None if not exist, or default if specified. 
+        The header name is case-insensitive such as 'USER-AGENT' or u'content-Type'.
+
+        >>> r = Request({'HTTP_USER_AGENT': 'Mozilla/5.0', 'HTTP_ACCEPT': 'text/html'})
+        >>> r.header('User-Agent')
+        u'Mozilla/5.0'
+        >>> r.header('USER-AGENT')
+        u'Mozilla/5.0'
+        >>> r.header('Accept')
+        u'text/html'
+        >>> r.header('Test')
+        >>> r.header('Test', u'DEFAULT')
+        u'DEFAULT'
+        '''
         return self._get_headers().get(header.upper(), default)
 
     #获取COOKIE信息，以一个字典类型返回
@@ -496,10 +752,31 @@ class Request(object):
     #获取请求中的所有COOKIE信息
     @property
     def cookies(self):
+        '''
+        Return all cookies as dict. The cookie name is str and values is unicode.
+
+        >>> r = Request({'HTTP_COOKIE':'A=123; url=http%3A%2F%2Fwww.example.com%2F'})
+        >>> r.cookies['A']
+        u'123'
+        >>> r.cookies['url']
+        u'http://www.example.com/'
+        '''
         return Dict(**self._get_cookies())
 
-    #根据cookie名获取对应的一个cookie值
+    #根据key返回cookie value
     def cookie(self, name, default=None):
+        '''
+        Return specified cookie value as unicode. Default to None if cookie not exists.
+
+        >>> r = Request({'HTTP_COOKIE':'A=123; url=http%3A%2F%2Fwww.example.com%2F'})
+        >>> r.cookie('A')
+        u'123'
+        >>> r.cookie('url')
+        u'http://www.example.com/'
+        >>> r.cookie('test')
+        >>> r.cookie('test', u'DEFAULT')
+        u'DEFAULT'
+        '''
         return self._get_cookies().get(name, default)
 
 UTC_0 = UTC('+00:00')
@@ -512,6 +789,16 @@ class Response(object):
 
     @property
     def headers(self):
+        '''
+        Return response headers as [(key1, value1), (key2, value2)...] including cookies.
+
+        >>> r = Response()
+        >>> r.headers
+        [('Content-Type', 'text/html; charset=utf-8'), ('X-Powered-By', 'transwarp/1.0')]
+        >>> r.set_cookie('s1', 'ok', 3600)
+        >>> r.headers
+        [('Content-Type', 'text/html; charset=utf-8'), ('Set-Cookie', 's1=ok; Max-Age=3600; Path=/; HttpOnly'), ('X-Powered-By', 'transwarp/1.0')]
+        '''
         L = [(_RESPONSE_HEADER_DICT.get(k, k), v) for k, v in self._headers.iteritems()]
         if hasattr(self, '_cookies'):
             for v in self._cookies.iteritems():
@@ -520,6 +807,16 @@ class Response(object):
         return L
 
     def header(self, name):
+        '''
+        Get header by name, case-insensitive.
+
+        >>> r = Response()
+        >>> r.header('content-type')
+        'text/html; charset=utf-8'
+        >>> r.header('CONTENT-type')
+        'text/html; charset=utf-8'
+        >>> r.header('X-Powered-By')
+        '''
         key = name.upper()
         if not key in _RESPONSE_HEADER_DICT:
             key = name
@@ -527,13 +824,33 @@ class Response(object):
 
     #删除HTTP响应头中name对应的记录
     def unset_header(self, name):
+        '''
+        Unset header by name and value.
+
+        >>> r = Response()
+        >>> r.header('content-type')
+        'text/html; charset=utf-8'
+        >>> r.unset_header('CONTENT-type')
+        >>> r.header('content-type')
+        '''
         key = name.upper()
         if not key in _RESPONSE_HEADER_DICT:
             key = name
         if key in self._headers:
             del self._headers[key]
 
+    #设置header
     def set_header(self, name, value):
+        '''
+        Set header by name and value.
+
+        >>> r = Response()
+        >>> r.header('content-type')
+        'text/html; charset=utf-8'
+        >>> r.set_header('CONTENT-type', 'image/png')
+        >>> r.header('content-TYPE')
+        'image/png'
+        '''
         key = name.upper()
         if not key in _RESPONSE_HEADER_DICT:
             key = name
@@ -541,6 +858,16 @@ class Response(object):
 
     @property
     def content_type(self):
+        '''
+        Get content type from response. This is a shortcut for header('Content-Type').
+
+        >>> r = Response()
+        >>> r.content_type
+        'text/html; charset=utf-8'
+        >>> r.content_type = 'application/json'
+        >>> r.content_type
+        'application/json'
+        '''
         return self.header('CONTENT-TYPE')
 
     @content_type.setter
@@ -562,13 +889,34 @@ class Response(object):
     def delete_cookie(self, name):
         self.set_cookie(name, '__deleted__', expires=0)
 
-    '''
-    >>> r = Response()
-    >>> r.set_cookie('company', 'Abc', 'Inc.', max_age=3600)
-    >>> r._cookies
-    {'company': 'company=Abc%2C%20Inc.; Max-Age=3600; Path=/; HttpOnly'}
-    '''
     def set_cookie(self, name, value, max_age=None, expires=None, path='/', domain=None, secure=False, http_only=True):
+        '''
+        Set a cookie.
+
+        Args:
+          name: the cookie name.
+          value: the cookie value.
+          max_age: optional, seconds of cookie's max age.
+          expires: optional, unix timestamp, datetime or date object that indicate an absolute time of the 
+                   expiration time of cookie. Note that if expires specified, the max_age will be ignored.
+          path: the cookie path, default to '/'.
+          domain: the cookie domain, default to None.
+          secure: if the cookie secure, default to False.
+          http_only: if the cookie is for http only, default to True for better safty 
+                     (client-side script cannot access cookies with HttpOnly flag).
+
+        >>> r = Response()
+        >>> r.set_cookie('company', 'Abc, Inc.', max_age=3600)
+        >>> r._cookies
+        {'company': 'company=Abc%2C%20Inc.; Max-Age=3600; Path=/; HttpOnly'}
+        >>> r.set_cookie('company', r'Example="Limited"', expires=1342274794.123, path='/sub/')
+        >>> r._cookies
+        {'company': 'company=Example%3D%22Limited%22; Expires=Sat, 14-Jul-2012 14:06:34 GMT; Path=/sub/; HttpOnly'}
+        >>> dt = datetime.datetime(2012, 7, 14, 22, 6, 34, tzinfo=UTC('+8:00'))
+        >>> r.set_cookie('company', 'Expires', expires=dt)
+        >>> r._cookies
+        {'company': 'company=Expires; Expires=Sat, 14-Jul-2012 14:06:34 GMT; Path=/; HttpOnly'}
+        '''
         if not hasattr(self, '_cookies'):
             self._cookies = {}
         L = ['%s=%s' % (_quote(name), _quote(value))]
@@ -589,16 +937,53 @@ class Response(object):
         self._cookies[name] = '; '.join(L)
 
     def unset_cookie(self, name):
+        '''
+        Unset a cookie.
+
+        >>> r = Response()
+        >>> r.set_cookie('company', 'Abc, Inc.', max_age=3600)
+        >>> r._cookies
+        {'company': 'company=Abc%2C%20Inc.; Max-Age=3600; Path=/; HttpOnly'}
+        >>> r.unset_cookie('company')
+        >>> r._cookies
+        {}
+        '''
         if hasattr(self, '_cookies'):
             if name in self._cookies:
                 del self._cookies[name]
 
     @property
     def status_code(self):
+        '''
+        Get response status code as int.
+
+        >>> r = Response()
+        >>> r.status_code
+        200
+        >>> r.status = 404
+        >>> r.status_code
+        404
+        >>> r.status = '500 Internal Error'
+        >>> r.status_code
+        500
+        '''
         return int(self._status[:3])
 
     @property
     def status(self):
+        '''
+        Get response status. Default to '200 OK'.
+
+        >>> r = Response()
+        >>> r.status
+        '200 OK'
+        >>> r.status = 404
+        >>> r.status
+        '404 Not Found'
+        >>> r.status = '500 Oh My God'
+        >>> r.status
+        '500 Oh My God'
+        '''
         return self._status
 
     @status_setter()
@@ -624,6 +1009,18 @@ class Response(object):
 
 class Template(object):
     def __init__(self, template_name, **kw):
+	'''
+	Init a template object with template name, model as dict, and additional kw that will append to model.
+
+	>>> t = Template('hello.html', title='Hello, copyright='@2012')
+	>>> t.model['title']
+	'Hello'
+	>>> t.model['copyright']
+	'@2012'
+        >>> t = Template('test.html', abc=u'ABC', xyz=u'XYZ')
+        >>> t.model['abc']
+        u'ABC'
+	'''
         self.template_name = template_name
         self.model = dict(**kw)
 
@@ -637,6 +1034,15 @@ class TemplateEngine(object):
 
 #缺省使用jinja2
 class Jinja2TemplateEnginee(TemplateEngine):
+    '''
+    Render using jinja2 template engine.
+
+    >>> templ_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'test')
+    >>> engine = Jinja2TemplateEnginee(templ_path)
+    >>> engine.add_filter('datetime', lambda dt: dt.strftime('%Y-%m-%d %H:%M:%S'))
+    >>> engine('jinja2-test,html', dict(name='xumenger', posted_at=datetime.datetime(2016, 9, 15, 11, 30, 0)))
+    '<p>Hello, xumenger.</p><span>2016-09-15 11:30:00</span>'
+    '''
     def __init__(self, templ_dir, **kw):
         from jinja2 import Environment, FileSystemLoader
         if not 'autoescape' in kw:
@@ -644,7 +1050,7 @@ class Jinja2TemplateEnginee(TemplateEngine):
         self._env = Environment(loader=FileSystemLoader(templ_dir), **kw)
 
     def add_filter(self, name, fn_filter):
-        self._env.filters = fn_filter
+        self._env.filters[name] = fn_filter
         
     def __call__(self, path, model):
         return self._env.get_template(path).render(**model).encode('utf-8')
@@ -662,6 +1068,13 @@ def _default_error_handle(e, start_response, is_debug):
         return _debug()
     return ('<html><body><h1>500 Internal Server Error</h1><h3>%s</h3></body></html>' % str(e))
 
+#为了支持MVC，Web框架需要支持模板
+#但我们不限定使用哪种模板，可以是Jinja2，也可以选择mako、Cheetah等
+#要同一模板的接口，函数可以返回dict并配合@view来渲染模板
+#@view('index.html')
+#@get('/')
+#def index():
+#   return dict(blogs=get_recent_blogs(), user=get_recent_user())
 def view(path):
     def _decorator(func):
         @functools.wraps(func)
@@ -686,6 +1099,14 @@ def _build_pattern_fn(pattern):
         return lambda p: p.endswith(m.group(1))
     raise ValueError('Invalid pattern definition in interceptor')
 
+#web框架要支持URL拦截器，这样我们就可以根据URL做权限检查
+#interceptor('/manage/')
+#def check_manage_url(next):
+#   if current_user.isAdmin():
+#       return next()
+#   else:
+#       raise seeother('/signin')
+#这里拦截器接受yigenext()函数，这样，一个拦截其可以决定调用next()继续处理请求还是直接返回
 def interceptor(pattern='/'):
     def _decorator(func):
         func.__interceptor__ = _build_pattern_fn(pattern)
@@ -701,14 +1122,59 @@ def _build_interceptor_fn(func, next):
     return _wrapper
 
 def _build_interceptor_chain(last_fn, *interceptors):
+    '''
+    Build interceptor chain
+
+    >>> def target():
+    ...     print 'target'
+    ...     return 123
+    >>> @interceptor('/')
+    ... def f1(next):
+    ...     print 'before f1()'
+    ...     return next()
+    >>> @interceptor('/test/')
+    ... def f2(next):
+    ...     print 'before f2()'
+    ...     try:
+    ...         return next()
+    ...     finally:
+    ...         print 'after f2()'
+    >>> @interceptor('/')
+    ... def f3(next):
+    ...     print 'before f3()'
+    ...     try:
+    ...         return next()
+    ...     finally:
+    ...         print 'after f3()'
+    >>> chain = _build_interceptor_chain(target, f1, f2, f3)
+    >>> ctx.request = Dict(path_info = '/test/abc')
+    >>> chain()
+    before f1()
+    before f2()
+    before f3()
+    target
+    after f3()
+    after f2()
+    123
+    '''
     L = list(interceptors)
     L.reverse()
     fn = last_fn
     for f in L:
-        fn = _build_pattern_fn(f, fn)
+        fn = _build_interceptor_fn(f, fn)
     return fn
 
 def _load_module(module_name):
+    '''
+    Load module from name as str
+
+    >>> m = _load_module('xml')
+    >>> m.__name__
+    'xml'
+    >>> m = _load_module('xml.sax')
+    >>> m.__name__
+    'xml.sax'
+    '''
     last_dot = module_name.rfind('.')
     if last_dot == (-1):
         return __import__(module_name, globals(), locals())
@@ -717,6 +1183,19 @@ def _load_module(module_name):
     m = __import__(from_module, globals(), locals(), [import_module])
     return getattr(m, import_module)
 
+#定义WSGIApplication类，实现WSGI接口，然后通过配置启动，就完成了整个Web框架的工作
+#设计WSGIApplication要充分考虑开发模式（Development Mode）和产品模式（Production Mode）的区分
+#在产品模式下，WSGIApplication需要直接提供WSGI接口给服务器，让服务器调用该接口
+#而在开发模式下，我们更希望直接通过app.run()直接启动服务器进行开发调试
+'''
+wsgi = WSGIApplication()
+#开发模式
+if __name__ == '__main__':
+    wsgi.run()
+#产品模式
+else:
+    application = wsgi.get_wsgi_application()
+'''
 class WSGIApplication(object):
     def __init__(self, document_root=None, **kw):
         self._running = False
@@ -753,6 +1232,7 @@ class WSGIApplication(object):
             if callable(fn) and hasattr(fn, '__web_route__') and hasattr(fn, '__web_method__'):
                 self.add_url(fn)
 
+    #添加URL
     def add_url(self, func):
         self._check_not_running()
         route = Route(func)
@@ -768,6 +1248,7 @@ class WSGIApplication(object):
                 self._post_dynamic.append(route)
         logging.info('Add route: %s' % str(route))
 
+    #添加拦截器
     def add_interceptor(self, func):
         self._check_not_running()
         self._interceptors.append(func)
@@ -779,7 +1260,7 @@ class WSGIApplication(object):
         server = make_server(host, port, self.get_wsgi_application(debug=True))
         server.serve_forever()
 
-    def get_wsgi_application(self, debug=True):
+    def get_wsgi_application(self, debug=False):
         self._check_not_running()
         if debug:
             self._get_dynamic.append(StaticFileRoute())
@@ -811,13 +1292,34 @@ class WSGIApplication(object):
 
         fn_exec = _build_interceptor_chain(fn_route, *self._interceptors)
 
+        #get_wagi_application用于返回一个WSGI接口方法给服务器
+        #也就是def wsgi(env, start_response)
+        #WSGI接口使用方法如下
+        '''
+        #定义一个WSGI接口
+        def application(environ, start_response):
+            response_body = '<h1>Hello World</h1>'
+            status = '200 OK'
+            response_headers = [('Content-Type', 'text/plain'), 
+                ('Content-Length', str(len(response_body)))]
+            start_response(status, response_headers)
+            
+            #以字符串的方式返回response，并且包含在可迭代的list中
+            #return的内容将会作为body展示在浏览器上
+            return [response_body]
+
+        #将wsgi接口传给服务器
+        httpd = make_server('localhost', 8080, application)
+        httpd.serve_forever()
+        '''
         def wsgi(env, start_response):
             ctx.application = _application
-            ctx.request = Request(env)
-            response = ctx.response() = Response()
+            ctx.request = Request(env)                  #根据请求的environ生成一个Request对象
+            response = ctx.response() = Response()      #生成一个Response响应对象
             try:
                 r = fn_exec()
                 if isinstance(r, Template):
+                    #这一步应该是根据模板引擎生成对应的HTML信息
                     r = self._template_engine(r.template_name, r.model)
                 if isinstance(r, unicode):
                     r = encode('utf-8')
@@ -830,6 +1332,9 @@ class WSGIApplication(object):
                 start_response(e.status, response.headers)
                 return []
             except HttpError, e:
+                start_response(e.status, response.headers)
+                return ['<html><body><h1>', e.status, '</h1></body></html>']
+            except Exception, e:
                 logging.exception(e)
                 if not debug:
                     start_response('500 Inter Server Error', [])
