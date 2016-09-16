@@ -927,7 +927,7 @@ class Response(object):
                 L.append('Expires=%s' % expires.astimezone(UTC_0).strftime('%a, %d-%b-%Y %H:%M:%S GMT'))
         elif isinstance(max_age, (int, long)):
             L.append('Max-Age=%d' % max_age)
-        L.append('Path=%s', % path)
+        L.append('Path=%s' % path)
         if domain:
             L.append('Domain=%s' % domain)
         if secure:
@@ -986,7 +986,7 @@ class Response(object):
         '''
         return self._status
 
-    @status_setter()
+    @status.setter
     def status(self, value):
         if isinstance(value, (int, long)):
             if value>=100 and value<999:
@@ -1315,7 +1315,7 @@ class WSGIApplication(object):
         def wsgi(env, start_response):
             ctx.application = _application
             ctx.request = Request(env)                  #根据请求的environ生成一个Request对象
-            response = ctx.response() = Response()      #生成一个Response响应对象
+            response = ctx.response = Response()      #生成一个Response响应对象
             try:
                 r = fn_exec()
                 if isinstance(r, Template):

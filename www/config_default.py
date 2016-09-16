@@ -12,7 +12,7 @@ configs={
             'user': 'root',
             'password': 'root',
             'database': 'awesome'
-            }
+            },
         'session':{
             'secret': 'AwEsOmE'
             }
